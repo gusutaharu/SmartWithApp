@@ -1,0 +1,30 @@
+inherit_from:
+  - .rubocop-airbnb.yml
+
+Rails:
+  Enabled: true
+
+AllCops:
+  Exclude:
+    - 'bin/*'
+    - 'db/schema.rb'
+
+AsciiComments:
+  Enabled: false
+
+LineLength:
+  Max: 120
+
+Layout/AlignArguments:
+  Exclude:
+    - 'config/application.rb'
+
+Style/BlockComments:
+  Exclude:
+    - 'spec/spec_helper.rb'
+
+Stayle/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: no_comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: no_comma
