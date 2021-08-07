@@ -13,7 +13,7 @@ jobs:
           path: ~/Smart_With_App
       - ruby/install-deps
 
-  test:
+  rspec:
     docker:
       - image: circleci/ruby:2.7
       - image: circleci/mysql:5.5
@@ -36,7 +36,21 @@ jobs:
           command: bundle exec rails db:migrate
       - run:
           name: test
-          command: bundle exec rake test
+          command: bundle exec bin/rspec
+
+  rubocop:
+    working_directory: ~//Smart_With_App
+    docker:
+      - image: circleci/ruby:2.7
+    steps:
+      - checkout
+      - run: bundle config --local path vendor/bundle
+      - run:
+          name: bundle install
+          command: bundle check || bundle install --jobs=8 --clean
+      - run:
+          name: Run rubocop
+          command: bundle exec rubocop
 
   deploy:
     docker:
@@ -64,9 +78,16 @@ workflows:
   build_test_and_deploy:
     jobs:
       - build
-      - test:
+      - rspec:
           requires:
-            - build
+          - build
+      - rubocop:
+          requires:
+          - build
       - deploy:
           requires:
-            - test
+            - rspec
+            - rubocop
+          filters:
+            branches:
+              only: develop
