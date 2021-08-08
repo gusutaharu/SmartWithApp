@@ -34,11 +34,20 @@ jobs:
     working_directory: ~/Smart_With_App/src
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - gemfiles-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
+            - gemfiles-{{ .Branch }}-
+            - gemfiles-master-
       - ruby/install-deps
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
       - run: bin/rails db:schema:load --trace
       - ruby/rspec-test
+      - save_cache:
+          key: gemfiles-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
 
   rubocop:
     docker:
@@ -48,8 +57,17 @@ jobs:
     working_directory: ~/Smart_With_App/src
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - gemfiles-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
+            - gemfiles-{{ .Branch }}-
+            - gemfiles-master-
       - ruby/install-deps
       - ruby/rubocop-check
+      - save_cache:
+          key: gemfiles-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
 
   deploy:
     docker:
