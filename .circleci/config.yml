@@ -1,12 +1,13 @@
 version: 2.1
 orbs:
   ruby: circleci/ruby@1.1.2
+  browser-tools: circleci/browser-tools@1.1.3
   heroku: circleci/heroku@1.2.3
 
 jobs:
   build:
     docker:
-      - image: circleci/ruby:2.7
+      - image: cimg/ruby:2.7-browsers
     working_directory: ~/Smart_With_App/src
     steps:
       - checkout:
@@ -15,46 +16,28 @@ jobs:
 
   rspec:
     docker:
-      - image: circleci/ruby:2.7
-      - image: circleci/mysql:5.5
-        environment:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: app_test
-          MYSOL_USER: root
-    environment:
-      BUNDLE_JOBS: "3"
-      BUNDLE_RETRY: "3"
-      APP_DATABASE_HOST: "127.0.0.1"
-      RAILS_ENV: test
+      - image: cimg/ruby:2.7-browsers
     working_directory: ~/Smart_With_App/src
     steps:
-      - checkout:
-          path: ~/Smart_With_App
+      - checkout
       - ruby/install-deps
-      - run:
-          name: Database setup
-          command: bundle exec rails db:migrate
-      - run:
-          name: test
-          command: bundle exec bin/rspec
+      - browser-tools/install-chrome
+      - browser-tools/install-chromedriver
+      - run: bin/rails db:schema:load --trace
+      - ruby/rspec-test
 
   rubocop:
-    working_directory: ~//Smart_With_App
     docker:
-      - image: circleci/ruby:2.7
+      - image: cimg/ruby:2.7-browsers
+    working_directory: ~/Smart_With_App/src
     steps:
       - checkout
-      - run: bundle config --local path vendor/bundle
-      - run:
-          name: bundle install
-          command: bundle check || bundle install --jobs=8 --clean
-      - run:
-          name: Run rubocop
-          command: bundle exec rubocop
+      - ruby/install-deps
+      - ruby/rubocop-check
 
   deploy:
     docker:
-      - image: circleci/ruby:2.7
+      - image: cimg/ruby:2.7-browsers
     steps:
       - checkout
       - setup_remote_docker:
