@@ -11,9 +11,6 @@ jobs:
     steps:
       - checkout
       - ruby/install-deps
-      - node/install-packages:
-          pkg-manager: yarn
-          cache-key: "yarn.lock"
 
   test:
     docker:
@@ -42,7 +39,7 @@ jobs:
 
   deploy:
     docker:
-      - image: cimg/ruby:2.7-browsers
+      - image: cimg/ruby:2.7-node
     steps:
       - checkout
       - setup_remote_docker:
