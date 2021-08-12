@@ -14,7 +14,7 @@ jobs:
           path: ~/Smart_With_App
       - ruby/install-deps
       - node/install-packages:
-          pkg-manaber: yarn
+          pkg-manager: yarn
           cache-key: "yarn.lock"
 
   test:
