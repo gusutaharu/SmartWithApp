@@ -8,10 +8,8 @@ jobs:
   build:
     docker:
       - image: cimg/ruby:2.7-node
-    working_directory: ~/Smart_With_App/src
     steps:
-      - checkout:
-          path: ~/Smart_With_App
+      - checkout
       - ruby/install-deps
       - node/install-packages:
           pkg-manager: yarn
@@ -30,7 +28,6 @@ jobs:
       BUNDLE_RETRY: "3"
       APP_DATABASE_HOST: "127.0.0.1"
       RAILS_ENV: test
-    working_directory: ~/Smart_With_App/src
     steps:
       - checkout
       - ruby/install-deps
