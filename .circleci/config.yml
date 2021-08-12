@@ -32,9 +32,7 @@ jobs:
     steps:
       - checkout
       - ruby/install-deps:
-          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
-          path: ./vendor/bundle
-          with-cache: true
+          with-cache: false
       - run:
           name: Database setup
           command: bundle exec rails db:schema:load --trace
