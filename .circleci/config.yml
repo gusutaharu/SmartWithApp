@@ -12,7 +12,7 @@ jobs:
       - checkout:
           path: ~/Smart_With_App
       - ruby/install-deps
-      
+
   test:
     docker:
       - image: cimg/ruby:2.7-node
@@ -28,16 +28,7 @@ jobs:
       RAILS_ENV: test
     steps:
       - checkout
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "Gemfile.lock" }}
-          - v1-dependencies-
       - ruby/install-deps
-      - save_cache:
-          paths:
-          - ./vendor/bundle
-          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
-
       - run:
           name: Database setup
           command: bundle exec rails db:schema:load --trace
