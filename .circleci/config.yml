@@ -33,7 +33,7 @@ jobs:
       - checkout
       - ruby/install-deps:
           key: gems-v1-{{ checksum "Gemfile.lock" }}
-          path: src/vendor/bundle
+          path: /home/circleci/Smart_With_App/src/vendor/bundle
           with-cache: true
       - run:
           name: Database setup
