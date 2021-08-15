@@ -1,28 +1,29 @@
 version: 2.1
-
 orbs:
-  ruby: circleci/ruby@1.1.4
-  node: circleci/node@4.7.0
+  ruby: circleci/ruby@1.1.2
+  heroku: circleci/heroku@1.2.3
 
 jobs:
   build:
     docker:
       - image: cimg/ruby:2.7-node
+    working_directory: ~/Smart_With_App/src
     steps:
-      - checkout
-      - ruby/install-deps
-      - node/install-packages:
-          pkg-manager: yarn
+      - checkout:
+          path: ~/Smart_With_App
+      - ruby/install-deps:
+          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
+          path: ./vendor/bundle
+          with-cache: true
 
   test:
-    parallelism: 3
     docker:
-        - image: cimg/ruby:2.7-node
-        - image: circleci/mysql:5.5
-          environment:
-              MYSQL_ROOT_PASSWORD: password
-              MYSQL_DATABASE: app_test
-              MYSQL_USER: root
+      - image: cimg/ruby:2.7-node
+      - image: circleci/mysql:5.5
+        environment:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: app_test
+          MYSQL_USER: root
     environment:
       BUNDLE_JOBS: "3"
       BUNDLE_RETRY: "3"
@@ -30,23 +31,48 @@ jobs:
       RAILS_ENV: test
     steps:
       - checkout
-      - ruby/install-deps
-      - node/install-packages:
-          pkg-manager: yarn
-      - run:
-          name: Wait for DB
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - ruby/install-deps:
+          key: gems-v1-{{ checksum "Gemfile.lock" }}
+          path: src/vendor/bundle
+          with-cache: true
       - run:
           name: Database setup
-          command: bundle exec rails db:schema:load -- trace
+          command: bundle exec rails db:schema:load --trace
       - ruby/rspec-test
       - ruby/rubocop-check
 
+  deploy:
+    docker:
+      - image: cimg/ruby:2.7-node
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+      - heroku/install
+      - run:
+          name: heroku login
+          command: heroku container:login
+      - run:
+          name: push docker image
+          command: heroku container:push web -a $HEROKU_APP_NAME
+      - run:
+          name: release docker image
+          command: heroku container:release web -a $HEROKU_APP_NAME
+      - run:
+          name: database setup
+          command: heroku run bundle exec rake db:migrate RAILS_ENV=production -a $HEROKU_APP_NAME
+
 workflows:
   version: 2
-  build_and_test:
+  build_test_and_deploy:
     jobs:
       - build
       - test:
           requires:
-            - build
+          - build
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only: develop
