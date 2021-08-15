@@ -33,7 +33,7 @@ jobs:
     steps:
       - checkout
       - ruby/install-deps:
-          key: gems-v1-
+          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
       - run:
           name: Database setup
           command: bundle exec rails db:schema:load --trace
